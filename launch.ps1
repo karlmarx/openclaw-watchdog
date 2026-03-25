@@ -6,7 +6,7 @@
 #
 # Only opens if watchdog is not already running.
 
-$wtExe    = "$env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+$wtExe    = "$env:LOCALAPPDATA\Microsoft\WindowsApps\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\wt.exe"
 $watchdog = "C:\Users\50420\.openclaw\watchdog\watchdog.py"
 $pidFile  = "$env:TEMP\openclaw-watchdog.pid"
 

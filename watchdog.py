@@ -44,27 +44,29 @@ PID_FILE        = Path(tempfile.gettempdir()) / "openclaw-watchdog.pid"
 MAX_LOG_BYTES   = 2 * 1024 * 1024  # 2 MB
 
 # ── Singleton guard ───────────────────────────────────────────────────────────
+def _is_pid_running(pid: int) -> bool:
+    """Check if a PID is actually alive using tasklist."""
+    try:
+        out = subprocess.check_output(
+            ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+            text=True, stderr=subprocess.DEVNULL
+        )
+        return str(pid) in out
+    except Exception:
+        return False
+
 def _check_singleton() -> None:
     if PID_FILE.exists():
         try:
             old_pid = int(PID_FILE.read_text().strip())
-            import psutil  # type: ignore[import-untyped]
-            if psutil.pid_exists(old_pid):
+            if _is_pid_running(old_pid):
                 print(f"Watchdog already running (PID {old_pid}). Exiting.")
                 sys.exit(0)
-        except (ValueError, ImportError, PermissionError):
-            pass  # psutil not installed or stale pid — fall through
-        # Check via tasklist as fallback
-        try:
-            out = subprocess.check_output(
-                ["tasklist", "/FI", f"PID eq {PID_FILE.read_text().strip()}", "/FO", "CSV"],
-                text=True, stderr=subprocess.DEVNULL
-            )
-            if PID_FILE.read_text().strip() in out:
-                print(f"Watchdog already running. Exiting.")
-                sys.exit(0)
-        except Exception:
-            pass
+            else:
+                # Stale PID — clean it up and continue
+                PID_FILE.unlink(missing_ok=True)
+        except (ValueError, OSError):
+            PID_FILE.unlink(missing_ok=True)
     PID_FILE.write_text(str(os.getpid()))
 
 def _cleanup_pid() -> None:
