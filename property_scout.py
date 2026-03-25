@@ -169,20 +169,7 @@ def _ai_complete(api_key: str, prompt: str, max_tokens: int = 2000) -> str:
     """
     import openai as _openai
 
-    # --- DeepSeek first ---
-    ds_key = os.environ.get("DEEPSEEK_API_KEY", "sk-a2f4a39d653a413b921057182e53320e")
-    try:
-        client = _openai.OpenAI(api_key=ds_key, base_url="https://api.deepseek.com")
-        resp = client.chat.completions.create(
-            model="deepseek-chat",
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return resp.choices[0].message.content.strip()
-    except Exception as e:
-        log.warning(f"DeepSeek failed ({e}), trying Gemini…")
-
-    # --- Gemini fallback ---
+    # --- Gemini first ---
     gem_key = os.environ.get("GEMINI_API_KEY", "AIzaSyC-IKzzMcu3A4F9DSTABTkuW5cLuy2nvAU")
     try:
         client = _openai.OpenAI(
@@ -191,6 +178,19 @@ def _ai_complete(api_key: str, prompt: str, max_tokens: int = 2000) -> str:
         )
         resp = client.chat.completions.create(
             model="gemini-2.0-flash",
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        log.warning(f"Gemini failed ({e}), trying DeepSeek…")
+
+    # --- DeepSeek fallback ---
+    ds_key = os.environ.get("DEEPSEEK_API_KEY", "sk-a2f4a39d653a413b921057182e53320e")
+    try:
+        client = _openai.OpenAI(api_key=ds_key, base_url="https://api.deepseek.com")
+        resp = client.chat.completions.create(
+            model="deepseek-chat",
             max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
