@@ -1,0 +1,14 @@
+{
+    "gmail_email":  "karlmarx9193@gmail.com",
+    "gmail_app_password":  "YOUR_GMAIL_APP_PASSWORD",
+    "sender_filter":  "southfloridaproperties@southeastmatrixmail.com",
+    "recipients":  [
+                       "brian.mina17@gmail.com",
+                       "karlmarx9193@gmail.com"
+                   ],
+    "anthropic_api_key":  "YOUR_ANTHROPIC_API_KEY",
+    "permalink_url":  "",
+    "send_emails":  true,
+    "score_threshold":  0,
+    "discord_webhook_url":  "YOUR_DISCORD_WEBHOOK_URL"
+}
