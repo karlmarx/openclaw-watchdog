@@ -1,7 +1,8 @@
-# launch.ps1 - Open Windows Terminal Preview with three tabs:
+# launch.ps1 - Open Windows Terminal Preview with four tabs:
 #   Tab 1: OpenClaw Gateway Watchdog (Python/Rich)
 #   Tab 2: openclaw tui
-#   Tab 3: claude (Claude Code CLI)
+#   Tab 3: Claude (Linux/WSL) - starts in /home/kmarx
+#   Tab 4: Claude (Windows)
 #
 # Only opens if watchdog is not already running.
 
@@ -19,34 +20,24 @@ if (Test-Path $pidFile) {
             exit 0
         }
     }
-    # Stale PID file — remove it
     Remove-Item $pidFile -ErrorAction SilentlyContinue
     Write-Host "Removed stale PID file."
 }
 
-# Figure out which python to use
-$pythonExe = (Get-Command python -ErrorAction SilentlyContinue).Source
-if (-not $pythonExe) { $pythonExe = "python" }
-Write-Host "Using python: $pythonExe"
-
-# Test that WT exists
 if (-not (Test-Path $wtExe)) {
     Write-Error "Windows Terminal not found at: $wtExe"
     exit 1
 }
 
-# Build command strings for each tab
-$cmd1 = "$pythonExe `"$watchdog`""
-$cmd2 = "openclaw tui"
-$cmd3 = "claude"
+$pythonExe = (Get-Command python -ErrorAction SilentlyContinue).Source
+if (-not $pythonExe) { $pythonExe = "python" }
 
 Write-Host "Launching Windows Terminal Preview..."
 
-# Use wt.exe command-line syntax:
-# wt new-tab [options] -- <commandline> ; new-tab [options] -- <commandline> ...
 & $wtExe `
-    new-tab --profile "Watchdog"    --title "Watchdog"   -- powershell -NoProfile -ExecutionPolicy Bypass -Command $cmd1 `; `
-    new-tab --profile "OpenClaw TUI" --title "OpenClaw"  -- powershell -NoProfile -ExecutionPolicy Bypass -Command $cmd2 `; `
-    new-tab --profile "Claude"       --title "Claude"    -- powershell -NoProfile -ExecutionPolicy Bypass -Command $cmd3
+    new-tab --profile "Watchdog"      -- powershell -NoProfile -ExecutionPolicy Bypass -Command "$pythonExe `"$watchdog`"" `;`
+    new-tab --profile "OpenClaw TUI"  -- powershell -NoProfile -ExecutionPolicy Bypass -Command "openclaw tui" `;`
+    new-tab --profile "Claude Linux"  `;`
+    new-tab --profile "Claude Win"    -- powershell -NoProfile -ExecutionPolicy Bypass -Command "claude"
 
-Write-Host "Done. Exit: $LASTEXITCODE"
+Write-Host "Launched. Exit: $LASTEXITCODE"
